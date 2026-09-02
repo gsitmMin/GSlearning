@@ -10,6 +10,7 @@ export function fmtClock(sec: number): string {
 }
 
 export function fmtMin(sec: number): string {
+  if (sec < 60) return `${Math.max(0, Math.round(sec))}초`;
   const m = Math.round(sec / 60);
   if (m < 60) return `${m}분`;
   const h = Math.floor(m / 60);
