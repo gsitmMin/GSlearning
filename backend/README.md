@@ -5,8 +5,11 @@ PRD: `docs/01_product/03_vimeo_lms_prd_v1.0.md` (저장소 외부 관리)
 
 ## 실행 준비
 
-1. **JDK 21** — Gradle 실행에 17+, 컴파일은 toolchain이 21을 자동 확보.
-   미설치 시: `~/.jdks/`에 Temurin 21을 두고 `export JAVA_HOME=~/.jdks/<jdk-21...>/Contents/Home`
+1. **JDK** — 별도 설정 불필요. `gradle/gradle-daemon-jvm.properties`(toolchainVersion=21)로
+   Gradle이 JDK 21을 자동 확보해 데몬을 띄운다. JAVA_HOME이 11이어도 빌드된다.
+
+   > 왜 21 고정인가: Spring Boot Gradle 플러그인 3.4.x는 **Gradle 실행 JVM 17+**를 요구하고,
+   > Gradle 8.14는 **JDK 26을 지원하지 않는다**. 즉 JDK 11·26 모두로는 빌드가 실패한다.
 2. **로컬 설정** — 접속정보·시크릿은 git에 없다:
    ```bash
    cp src/main/resources/application-local.yml.example src/main/resources/application-local.yml
@@ -19,6 +22,13 @@ PRD: `docs/01_product/03_vimeo_lms_prd_v1.0.md` (저장소 외부 관리)
 ./gradlew bootRun        # 기동 시 Flyway가 마이그레이션 자동 적용
 ./gradlew test           # 단위 + ArchUnit(패키지 의존방향)
 ```
+
+### IntelliJ
+
+`backend` 폴더를 열면 `.idea/` 설정이 Gradle JVM·프로젝트 SDK를 `temurin-21`로 잡는다.
+JDK 21이 목록에 없으면: `Settings → Build Tools → Gradle → Gradle JVM`에서
+`~/.jdks/jdk-21...`(또는 Download JDK로 Temurin 21)을 선택.
+실행 구성 **backend [bootRun]** 이 미리 등록되어 있다.
 
 - 포트 **8081** (8080은 로컬 다른 서비스 사용 중) · Base Path `/api/v2`
 - 헬스체크: `GET /api/v2/actuator/health`
