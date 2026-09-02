@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import ContentCard, { type ContentSummary } from "@/components/ContentCard";
 import CourseAccordion, { type EnrollmentView } from "@/components/CourseAccordion";
 import type { VideoProgress } from "@/lib/types";
+import { api } from "@/lib/api";
 
 const DIFFS = ["전체", "입문", "초급", "중급", "고급"] as const;
 
@@ -19,13 +20,13 @@ export default function CatalogPage() {
   useEffect(() => {
     void (async () => {
       const [c, e, p] = await Promise.all([
-        fetch("/api/contents").then((r) => r.json()),
-        fetch("/api/me/enrollments").then((r) => r.json()),
-        fetch("/api/me/progress").then((r) => r.json()),
+        api<ContentSummary[]>("/contents"),
+        api<EnrollmentView[]>("/me/enrollments"),
+        api<Record<string, VideoProgress>>("/me/progress"),
       ]);
-      setContents(c.data);
-      setEnrollments(e.data);
-      setProgress(p.data);
+      setContents(c);
+      setEnrollments(e);
+      setProgress(p);
       setLoaded(true);
     })();
   }, []);

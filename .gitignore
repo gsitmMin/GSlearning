@@ -43,3 +43,8 @@ tmp/
 
 # Spring 로컬 프로필 (DB 접속정보·JWT 시크릿 — 커밋 금지)
 application-local.yml
+
+# IDE
+.idea/
+*.iml
+.vscode/

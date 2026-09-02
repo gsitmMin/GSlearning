@@ -29,11 +29,12 @@ public class JwtService {
         this.accessTtl = accessTtl;
     }
 
-    public String createAccessToken(Long accountId, String employeeNo, List<String> roles) {
+    public String createAccessToken(Long accountId, String employeeNo, Long employeeId, List<String> roles) {
         Instant now = Instant.now();
         return Jwts.builder()
             .subject(String.valueOf(accountId))
             .claim("empNo", employeeNo)
+            .claim("empId", employeeId)
             .claim("roles", roles)
             .issuedAt(Date.from(now))
             .expiration(Date.from(now.plus(accessTtl)))

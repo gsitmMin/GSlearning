@@ -2,11 +2,10 @@
 /** 챕터 편집기 — FR-S-01/02. 저장하면 학습자 시청 페이지에 즉시 반영됩니다. */
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { CONTENTS } from "@/lib/mock-data";
+import { api } from "@/lib/api";
+import type { ContentSummary } from "@/components/ContentCard";
 import { fmtClock } from "@/lib/format";
 import type { Segment } from "@/lib/types";
-
-const EDITABLE = CONTENTS.filter((c) => c.publishStatus === "PUBLISHED");
 
 type Row = { key: string; start: string; end: string; title: string };
 
@@ -23,25 +22,32 @@ function parseClock(v: string): number | null {
 }
 
 export default function SegmentEditorPage() {
-  const [contentId, setContentId] = useState(EDITABLE[0].id);
-  const content = EDITABLE.find((c) => c.id === contentId)!;
+  const [editable, setEditable] = useState<ContentSummary[]>([]);
+  const [contentId, setContentId] = useState<string>("");
+  const content = editable.find((c) => c.id === contentId);
   const [rows, setRows] = useState<Row[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
-    void fetch(`/api/contents/${contentId}/segments`)
-      .then((r) => r.json())
-      .then((j) =>
-        setRows(
-          (j.data as Segment[]).map((s) => ({
-            key: s.id,
-            start: toClock(s.startSec),
-            end: toClock(s.endSec),
-            title: s.title,
-          }))
-        )
-      );
+    void api<ContentSummary[]>("/admin/contents").then((list) => {
+      setEditable(list);
+      if (list.length > 0) setContentId((cur) => cur || list[0].id);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!contentId) return;
+    void api<Segment[]>(`/contents/${contentId}/segments`).then((segs) =>
+      setRows(
+        segs.map((s) => ({
+          key: s.id,
+          start: toClock(s.startSec),
+          end: toClock(s.endSec),
+          title: s.title,
+        }))
+      )
+    );
     setError(null);
   }, [contentId]);
 
@@ -59,45 +65,44 @@ export default function SegmentEditorPage() {
     r.startSec === null ||
     r.endSec === null ||
     r.endSec <= r.startSec ||
-    r.endSec > content.durationSec;
+    (content !== undefined && r.endSec > content.durationSec);
 
   const update = (key: string, field: keyof Row, value: string) =>
     setRows((rs) => rs.map((r) => (r.key === key ? { ...r, [field]: value } : r)));
 
   const addRow = () => {
+    if (!content) return;
     const lastEnd = parsed.length > 0 ? parsed[parsed.length - 1].endSec ?? 0 : 0;
     setRows((rs) => [
       ...rs,
-      { key: `new-${Date.now()}`, start: toClock(lastEnd), end: toClock(Math.min(lastEnd + 300, content.durationSec)), title: "" },
+      { key: `new-${Date.now()}`, start: toClock(lastEnd), end: toClock(Math.min(lastEnd + 60, content.durationSec)), title: "" },
     ]);
   };
 
   const save = async () => {
+    if (!content) return;
     setError(null);
     const bad = parsed.find(rowInvalid);
     if (bad) {
       setError(`"${bad.title || "제목 없음"}" 행의 구간이 올바르지 않습니다 — 종료 > 시작, 영상 길이(${fmtClock(content.durationSec)}) 이내여야 합니다.`);
       return;
     }
-    const segments = parsed.map((r, i) => ({
-      id: r.key.startsWith("new-") ? `${contentId}-S-NEW-${i}` : r.key,
-      sequenceNo: i + 1,
+    const segments = parsed.map((r) => ({
       startSec: r.startSec!,
       endSec: r.endSec!,
-      title: r.title || `챕터 ${i + 1}`,
+      title: r.title,
     }));
-    const res = await fetch(`/api/admin/contents/${contentId}/segments`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ segments }),
-    });
-    const json = await res.json();
-    if (!json.success) {
-      setError(json.error.message);
-      return;
+    try {
+      const saved = await api<Segment[]>(`/admin/contents/${contentId}/segments`, {
+        method: "PUT",
+        body: JSON.stringify({ segments }),
+      });
+      setRows(saved.map((s) => ({ key: s.id, start: toClock(s.startSec), end: toClock(s.endSec), title: s.title })));
+      setToast("저장했습니다 — 학습자 시청 페이지에 바로 반영됩니다");
+      setTimeout(() => setToast(null), 3000);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "저장에 실패했습니다.");
     }
-    setToast("저장했습니다 — 학습자 시청 페이지에 바로 반영됩니다");
-    setTimeout(() => setToast(null), 3000);
   };
 
   return (
@@ -118,13 +123,14 @@ export default function SegmentEditorPage() {
           style={{ width: 360 }}
           aria-label="편집할 콘텐츠 선택"
         >
-          {EDITABLE.map((c) => (
-            <option key={c.id} value={c.id}>{c.title} ({fmtClock(c.durationSec)})</option>
+          {editable.map((c) => (
+            <option key={c.id} value={c.id}>[{c.publishStatus === "DRAFT" ? "작성중" : "게시"}] {c.title} ({fmtClock(c.durationSec)})</option>
           ))}
         </select>
       </div>
 
       {/* 타임라인 미리보기 */}
+      {content && (
       <div className="seg-timeline" aria-hidden>
         {parsed.filter((r) => !rowInvalid(r)).map((r) => (
           <span
@@ -139,6 +145,7 @@ export default function SegmentEditorPage() {
           </span>
         ))}
       </div>
+      )}
 
       <div className="card" style={{ padding: "16px 18px" }}>
         <div className="seg-form-row" style={{ color: "var(--ink-3)", fontSize: 12 }}>

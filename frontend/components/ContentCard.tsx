@@ -10,6 +10,8 @@ export type ContentSummary = {
   orgScope: string;
   tone: number;
   segmentCount: number;
+  thumbnailUrl?: string | null;
+  publishStatus?: string;
 };
 
 export default function ContentCard({
@@ -21,7 +23,7 @@ export default function ContentCard({
 }) {
   return (
     <Link href={`/contents/${c.id}`} className="card content-card">
-      <Thumb tone={c.tone} duration={fmtMin(c.durationSec)} resumeRatio={percent} />
+      <Thumb tone={c.tone} thumbnailUrl={c.thumbnailUrl} duration={fmtMin(c.durationSec)} resumeRatio={percent} />
       <div className="body">
         <span className="title">{c.title}</span>
         <div className="meta-row">

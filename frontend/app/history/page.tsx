@@ -2,15 +2,20 @@
 /** 학습 이력 (PRD §6.1) */
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { CONTENTS } from "@/lib/mock-data";
+import { api } from "@/lib/api";
+import type { ContentSummary } from "@/components/ContentCard";
 import { fmtMin } from "@/lib/format";
 import type { VideoProgress } from "@/lib/types";
 
 export default function HistoryPage() {
   const [progress, setProgress] = useState<Record<string, VideoProgress>>({});
+  const [contents, setContents] = useState<ContentSummary[]>([]);
   const [loaded, setLoaded] = useState(false);
   useEffect(() => {
-    void fetch("/api/me/progress").then((r) => r.json()).then((j) => { setProgress(j.data); setLoaded(true); });
+    void Promise.all([
+      api<Record<string, VideoProgress>>("/me/progress"),
+      api<ContentSummary[]>("/contents"),
+    ]).then(([p, c]) => { setProgress(p); setContents(c); setLoaded(true); });
   }, []);
 
   const rows = Object.values(progress)
@@ -33,7 +38,7 @@ export default function HistoryPage() {
               <tr><td colSpan={5} className="empty">시청 기록이 없습니다.</td></tr>
             )}
             {rows.map((p) => {
-              const c = CONTENTS.find((x) => x.id === p.contentId);
+              const c = contents.find((x) => x.id === p.contentId);
               return (
                 <tr key={p.contentId}>
                   <td><Link href={`/contents/${p.contentId}`} style={{ fontWeight: 600 }}>{c?.title ?? p.contentId}</Link></td>

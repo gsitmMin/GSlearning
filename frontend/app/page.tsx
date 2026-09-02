@@ -6,7 +6,7 @@ import Link from "next/link";
 import Thumb from "@/components/Thumb";
 import ContentCard, { type ContentSummary } from "@/components/ContentCard";
 import CourseAccordion, { type EnrollmentView } from "@/components/CourseAccordion";
-import { ME } from "@/lib/mock-data";
+import { api, getUser } from "@/lib/api";
 import { fmtClock, fmtMin, dDay } from "@/lib/format";
 import { resumePosition } from "@/lib/intervals";
 import type { VideoProgress } from "@/lib/types";
@@ -16,17 +16,19 @@ export default function HomePage() {
   const [enrollments, setEnrollments] = useState<EnrollmentView[]>([]);
   const [progress, setProgress] = useState<Record<string, VideoProgress>>({});
   const [loaded, setLoaded] = useState(false);
+  const [userName, setUserName] = useState("");
 
   useEffect(() => {
+    setUserName(getUser()?.name ?? "");
     void (async () => {
       const [c, e, p] = await Promise.all([
-        fetch("/api/contents").then((r) => r.json()),
-        fetch("/api/me/enrollments").then((r) => r.json()),
-        fetch("/api/me/progress").then((r) => r.json()),
+        api<ContentSummary[]>("/contents"),
+        api<EnrollmentView[]>("/me/enrollments"),
+        api<Record<string, VideoProgress>>("/me/progress"),
       ]);
-      setContents(c.data);
-      setEnrollments(e.data);
-      setProgress(p.data);
+      setContents(c);
+      setEnrollments(e);
+      setProgress(p);
       setLoaded(true);
     })();
   }, []);
@@ -55,7 +57,7 @@ export default function HomePage() {
     <main className="page">
       <div className="page-head">
         <h1>
-          {ME.name}님, 안녕하세요.
+          {userName}님, 안녕하세요.
           {remainSec > 0 && (
             <span style={{ fontWeight: 400, fontSize: 15, color: "var(--ink-2)" }}>
               {" "}오늘 필수 학습 약 {fmtMin(remainSec)}이 남아 있습니다.

@@ -1,11 +1,13 @@
-/** 목 썸네일 — 실제 구현에서는 Vimeo 썸네일 URL 사용 (video_asset.thumbnail) */
+/** 썸네일 — Vimeo 썸네일이 있으면 사용, 없으면 tone 그라디언트 폴백 */
 export default function Thumb({
   tone,
+  thumbnailUrl,
   duration,
   resumeRatio,
   children,
 }: {
   tone: number;
+  thumbnailUrl?: string | null;
   duration?: string;
   resumeRatio?: number;
   children?: React.ReactNode;
@@ -14,7 +16,9 @@ export default function Thumb({
     <div
       className="thumb"
       style={{
-        background: `linear-gradient(135deg, hsl(${tone} 32% 30%), hsl(${(tone + 40) % 360} 38% 18%))`,
+        background: thumbnailUrl
+          ? `center / cover no-repeat url(${thumbnailUrl}_640x360)`
+          : `linear-gradient(135deg, hsl(${tone} 32% 30%), hsl(${(tone + 40) % 360} 38% 18%))`,
       }}
     >
       <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden style={{ position: "absolute", top: "calc(50% - 17px)", left: "calc(50% - 17px)", opacity: 0.9 }}>

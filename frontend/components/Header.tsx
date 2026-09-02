@@ -1,7 +1,8 @@
 "use client";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { ME } from "@/lib/mock-data";
+import { usePathname, useRouter } from "next/navigation";
+import { getUser, hasSession, logout, type UserView } from "@/lib/api";
 
 const NAV = [
   { href: "/", label: "홈" },
@@ -12,8 +13,25 @@ const NAV = [
 
 export default function Header() {
   const path = usePathname();
+  const router = useRouter();
+  const [user, setUser] = useState<UserView | null>(null);
+
+  // 미로그인 가드 — 로그인 화면 외에는 세션 필요
+  useEffect(() => {
+    if (path === "/login") return;
+    if (!hasSession()) {
+      router.replace("/login");
+      return;
+    }
+    setUser(getUser());
+  }, [path, router]);
+
+  if (path === "/login") return null;
+
   const isActive = (href: string) =>
     href === "/" ? path === "/" : path.startsWith(href);
+  const isAdmin = user?.roles.includes("ADMIN");
+
   return (
     <header className="site-header">
       <div className="inner">
@@ -28,14 +46,21 @@ export default function Header() {
           ))}
         </nav>
         <div className="header-right">
-          <Link href="/admin" className={`admin-link ${path.startsWith("/admin") ? "active" : ""}`}>
-            관리자
-          </Link>
-          <span className="profile-chip">
-            <span className="avatar">{ME.name[0]}</span>
-            {ME.name}
-            <span className="org"> · {ME.organization.split(" ")[0]}</span>
-          </span>
+          {isAdmin && (
+            <Link href="/admin" className={`admin-link ${path.startsWith("/admin") ? "active" : ""}`}>
+              관리자
+            </Link>
+          )}
+          {user && (
+            <span className="profile-chip">
+              <span className="avatar">{user.name[0]}</span>
+              {user.name}
+              <span className="org"> · {user.organization.split(" ")[0]}</span>
+            </span>
+          )}
+          <button className="admin-link" onClick={() => void logout()} style={{ border: 0, background: "none" }}>
+            로그아웃
+          </button>
         </div>
       </div>
     </header>

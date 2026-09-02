@@ -2,12 +2,13 @@
 /** 내 학습 — 과정 아코디언 (PRD §6.1/§6.3) */
 import { useEffect, useState } from "react";
 import CourseAccordion, { type EnrollmentView } from "@/components/CourseAccordion";
+import { api } from "@/lib/api";
 
 export default function MyLearningPage() {
   const [enrollments, setEnrollments] = useState<EnrollmentView[]>([]);
   const [loaded, setLoaded] = useState(false);
   useEffect(() => {
-    void fetch("/api/me/enrollments").then((r) => r.json()).then((j) => { setEnrollments(j.data); setLoaded(true); });
+    void api<EnrollmentView[]>("/me/enrollments").then((d) => { setEnrollments(d); setLoaded(true); });
   }, []);
 
   const active = enrollments.filter((e) => e.status !== "COMPLETED");

@@ -1,7 +1,9 @@
 # GSITM Learning — 프로토타입 (frontend)
 
-`docs/01_product/03_vimeo_lms_prd_v1.0.md` 기반의 클릭 가능한 프로토타입입니다.
-Next.js 16 + React 19 + TypeScript. **백엔드·DB 없이 단독으로 실행됩니다.**
+`docs/01_product/03_vimeo_lms_prd_v1.0.md` 기반. Next.js 16 + React 19 + TypeScript.
+
+`.env.local`의 `BACKEND_ORIGIN`이 설정되면 `/api/*`가 Spring Boot(`/api/v2`)로 프록시되고
+(로그인·실제 Vimeo 플레이어·서버 진도), 비우면 내장 목 API로 단독 실행됩니다.
 
 ## 실행
 
@@ -15,11 +17,13 @@ npm run dev     # → http://localhost:3000
 
 | 진짜 (실제 구현에 그대로 사용) | 가짜 (교체 대상) |
 |---|---|
-| `lib/intervals.ts` — §7 구간 병합·검증 로직. **Java 포팅 스펙** | `components/MockPlayer.tsx` — Vimeo 시뮬레이터. `@vimeo/player`로 교체 |
-| `lib/useProgressTracker.ts` — 클라이언트 수집·배치 전송 (10초/일시정지/이탈) | `app/api/**` — 목 API. Spring Boot(`/api/v2`)로 교체 |
-| API 요청/응답 계약 (PRD §9) | `lib/store.ts` — 인메모리. PostgreSQL로 교체 |
-| 화면 레이아웃·컴포넌트 전부 (§6.3/§6.4) | 로그인 없음 — 김지원 계정 고정 |
-| 디자인 토큰 (`app/globals.css`) | 관리자 대시보드 수치 일부 |
+| `components/VimeoPlayer.tsx` — 실제 Vimeo 플레이어 (getCurrentTime 폴링) | `app/api/**` — 목 API (BACKEND_ORIGIN 없을 때 폴백) |
+| `lib/api.ts` — 토큰 부착·자동 refresh | `components/MockPlayer.tsx` — 목 모드용 시뮬레이터 |
+| `lib/useProgressTracker.ts` — §7 수집·배치 전송 | `lib/mock-data.ts` · `lib/store.ts` — 목 모드 전용 |
+| `lib/intervals.ts` — §7 로직 (backend ProgressLogic.java와 동일 규격) | 관리자 대시보드 수치 일부 |
+
+주의: `@vimeo/player`의 timeupdate 이벤트는 환경에 따라 유실되어 **getCurrentTime 폴링(400ms)**으로
+구간을 수집한다. StrictMode 이중 마운트 대응으로 플레이어는 마운트마다 새 호스트 div에 생성한다.
 
 ## 확인 포인트
 

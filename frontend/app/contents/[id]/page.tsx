@@ -2,7 +2,9 @@
 /** 영상 시청 페이지 — PRD §6.4 */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
-import MockPlayer, { type PlayerHandle } from "@/components/MockPlayer";
+import { type PlayerHandle } from "@/components/MockPlayer";
+import VimeoPlayer from "@/components/VimeoPlayer";
+import { api } from "@/lib/api";
 import ChapterList from "@/components/ChapterList";
 import { useProgressTracker } from "@/lib/useProgressTracker";
 import { fmtClock, fmtMin } from "@/lib/format";
@@ -10,6 +12,8 @@ import { mergeIntervals, watchedSec } from "@/lib/intervals";
 import type { Content, Segment, VideoProgress } from "@/lib/types";
 
 type PlayerInfo = {
+  providerVideoId: string;
+  embedHash: string | null;
   durationSec: number;
   resumeAt: number;
   segments: Segment[];
@@ -32,11 +36,11 @@ export default function WatchPage() {
   useEffect(() => {
     void (async () => {
       const [c, p] = await Promise.all([
-        fetch(`/api/contents/${id}`).then((r) => r.json()),
-        fetch(`/api/learning/contents/${id}/player`).then((r) => r.json()),
+        api<Content>(`/contents/${id}`),
+        api<PlayerInfo>(`/learning/contents/${id}/player`),
       ]);
-      if (c.success) setContent(c.data);
-      if (p.success) setInfo(p.data);
+      setContent(c);
+      setInfo(p);
     })();
   }, [id]);
 
@@ -98,15 +102,15 @@ export default function WatchPage() {
       <div className="watch-layout">
         <div>
           <div className="player-sticky">
-          <MockPlayer
+          <VimeoPlayer
             ref={playerRef}
-            durationSec={content.durationSec}
-            segments={segs}
-            watchedIntervals={displayIntervals}
+            videoId={info.providerVideoId}
+            embedHash={info.embedHash}
             onTimeUpdate={onTimeUpdate}
             onSeeked={onSeeked}
             onPlayState={tracker.onPlayState}
             onEnded={tracker.onEnded}
+            onRateChange={tracker.setRate}
           />
           </div>
 

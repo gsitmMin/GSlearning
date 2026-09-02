@@ -9,6 +9,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Interval, ProgressResponse, VideoProgress } from "./types";
 import { mergeIntervals } from "./intervals";
+import { api } from "./api";
 
 export type DevLog = {
   at: string;
@@ -56,9 +57,8 @@ export function useProgressTracker(contentId: string, initial: VideoProgress | n
       if (snapshot.length === 0) return;
       inflightRef.current = true;
       try {
-        const res = await fetch(`/api/learning/contents/${contentId}/progress`, {
+        const data = await api<ProgressResponse>(`/learning/contents/${contentId}/progress`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             intervals: snapshot,
             lastPosition: lastPosRef.current,
@@ -67,16 +67,13 @@ export function useProgressTracker(contentId: string, initial: VideoProgress | n
           }),
           keepalive: true,
         });
-        const json = (await res.json()) as { success: boolean; data: ProgressResponse };
-        if (json.success) {
-          setServer(json.data.progress);
-          const rej = json.data.rejected;
-          pushLog(
-            `${reason} — 구간 ${snapshot.length}개 전송 → ${json.data.progress.percent}%` +
-              (rej.length ? ` (거부 ${rej.length}: ${rej[0].reason})` : ""),
-            rej.length === 0
-          );
-        }
+        setServer(data.progress);
+        const rej = data.rejected;
+        pushLog(
+          `${reason} — 구간 ${snapshot.length}개 전송 → ${data.progress.percent}%` +
+            (rej.length ? ` (거부 ${rej.length}: ${rej[0].reason})` : ""),
+          rej.length === 0
+        );
       } catch {
         pushLog(`${reason} — 전송 실패 (재시도 예정)`, false);
       } finally {
@@ -148,9 +145,8 @@ export function useProgressTracker(contentId: string, initial: VideoProgress | n
   /** 개발자 패널 — §7.4 마지막 시나리오 재현: 조작된 전체 구간 전송 */
   const sendForged = useCallback(
     async (durationSec: number) => {
-      const res = await fetch(`/api/learning/contents/${contentId}/progress`, {
+      const data = await api<ProgressResponse>(`/learning/contents/${contentId}/progress`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           intervals: [{ start: 0, end: durationSec }],
           lastPosition: durationSec,
@@ -158,12 +154,11 @@ export function useProgressTracker(contentId: string, initial: VideoProgress | n
           clientSentAt: Date.now(),
         }),
       });
-      const json = (await res.json()) as { success: boolean; data: ProgressResponse };
-      const rejected = json.data.rejected.length > 0;
-      setServer(json.data.progress);
+      const rejected = data.rejected.length > 0;
+      setServer(data.progress);
       pushLog(
         rejected
-          ? `조작 요청 테스트 — 서버가 거부 (${json.data.rejected[0].reason}), 진도 ${json.data.progress.percent}% 유지`
+          ? `조작 요청 테스트 — 서버가 거부 (${data.rejected[0].reason}), 진도 ${data.progress.percent}% 유지`
           : `조작 요청 테스트 — 통과됨 (검증 실패!)`,
         rejected
       );

@@ -100,7 +100,8 @@ public class AuthService {
     private AuthDtos.TokenResponse issueTokens(UserAccount account) {
         List<String> roles = List.copyOf(account.getRoles());
         String access = jwt.createAccessToken(
-            account.getId(), account.getEmployee().getEmployeeNo(), roles);
+            account.getId(), account.getEmployee().getEmployeeNo(),
+            account.getEmployee().getId(), roles);
 
         byte[] buf = new byte[48];
         random.nextBytes(buf);

@@ -2,6 +2,7 @@
 /** 관리자 대시보드 — FR-D-01/02 (수치는 목 데이터) */
 import { useEffect, useState } from "react";
 import type { EnrollmentView } from "@/components/CourseAccordion";
+import { api } from "@/lib/api";
 
 // PoC 규모(20~30명)를 가정한 목 현황
 const COURSE_STATS = [
@@ -13,7 +14,7 @@ const NOT_STARTED = ["박민서 (인프라팀)", "이도현 (백엔드팀)", "�
 export default function AdminDashboard() {
   const [enrollments, setEnrollments] = useState<EnrollmentView[]>([]);
   useEffect(() => {
-    void fetch("/api/me/enrollments").then((r) => r.json()).then((j) => setEnrollments(j.data));
+    void api<EnrollmentView[]>("/me/enrollments").then(setEnrollments);
   }, []);
 
   const mandatoryRate = Math.round((COURSE_STATS[0].done / COURSE_STATS[0].total) * 100);
