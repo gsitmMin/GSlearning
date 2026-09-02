@@ -76,7 +76,7 @@ export default function HomePage() {
         {/* 이어보기 */}
         {resume && resumeContent ? (
           <Link href={`/contents/${resume.contentId}`} className="card resume-card content-card">
-            <Thumb tone={resumeContent.tone} resumeRatio={resume.percent} />
+            <Thumb tone={resumeContent.tone} thumbnailUrl={resumeContent.thumbnailUrl} resumeRatio={resume.percent} />
             <div className="body">
               <span className="eyebrow">이어보기</span>
               <h2>{resumeContent.title}</h2>
