@@ -1,0 +1,42 @@
+# ── OS ──
+.DS_Store
+Thumbs.db
+
+# ── 문서 (사내 설계 문서 — 저장소에 포함하지 않음) ──
+docs/
+
+# ── 에이전트 자동생성 파일 ──
+AGENTS.md
+CLAUDE.md
+**/AGENTS.md
+**/CLAUDE.md
+
+# ── 테스트 / 도구 산출물 ──
+.playwright-mcp/
+*.png
+!frontend/public/**/*.png
+test-results/
+playwright-report/
+
+# ── 환경변수 · 시크릿 (Vimeo 토큰 등 — 절대 커밋 금지) ──
+.env
+.env.*
+!.env.example
+*.local
+secrets/
+
+# ── 프론트엔드 (Next.js) ──
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/next-env.d.ts
+
+# ── 백엔드 (Spring Boot / Gradle) ──
+backend/build/
+backend/.gradle/
+backend/bin/
+backend/out/
+
+# ── 로그 · 임시 ──
+*.log
+tmp/
