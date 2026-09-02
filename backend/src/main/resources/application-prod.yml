@@ -1,0 +1,14 @@
+# 운영/배포 프로필 — 모든 비밀값은 환경변수로 주입한다 (PRD §10.1)
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+
+app:
+  jwt:
+    secret: ${APP_JWT_SECRET}
+  vimeo:
+    token: ${APP_VIMEO_TOKEN}
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:3000}

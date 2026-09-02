@@ -52,3 +52,30 @@ audit/     감사 로그 (도메인을 모름)
 - DB는 Render PostgreSQL 18 (싱가포르). `sslmode=require` 필수, Hikari 풀 5 (max_connections 100 공유).
 - 기존 `public.test` 테이블이 있어 `baseline-on-migrate: true, baseline-version: 0` 설정.
 - 그룹웨어 SSO 전환 시: security 패키지에 OIDC 추가, user_account.password_hash만 미사용화.
+
+## Render 배포
+
+Render는 Java 네이티브 런타임이 없어 **Docker 방식**으로 배포한다 (`backend/Dockerfile`).
+
+```
+New → Web Service → GitHub 저장소 연결
+  Root Directory   backend        ← 이걸로 하위 폴더 인식
+  Runtime          Docker         (Dockerfile 자동 감지)
+  Health Check     /api/v2/actuator/health
+```
+
+환경변수 (Settings → Environment):
+
+```
+SPRING_PROFILES_ACTIVE      prod
+SPRING_DATASOURCE_URL       jdbc:postgresql://<Internal-Host>/<db>   ← 같은 리전이면 Internal URL 사용 (지연 ~1ms)
+SPRING_DATASOURCE_USERNAME  <user>
+SPRING_DATASOURCE_PASSWORD  <password>
+APP_JWT_SECRET              openssl rand -base64 48 결과
+APP_VIMEO_TOKEN             Vimeo 액세스 토큰
+APP_CORS_ALLOWED_ORIGINS    (선택) 프론트 도메인 — Vercel 프록시 경유면 불필요
+```
+
+- `application-prod.yml`은 전부 환경변수 참조라 시크릿 없이 커밋 안전
+- 무료 플랜은 유휴 시 슬립 → 첫 요청에 JVM 콜드스타트 수십 초
+- 검증됨: prod 프로필 + 환경변수만으로 부팅·로그인·Vimeo 연동 동작 (2026-09-02)

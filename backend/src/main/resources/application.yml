@@ -21,7 +21,7 @@ spring:
 server:
   servlet:
     context-path: /api/v2   # PRD §9 Base Path
-  port: 8081                # 8080은 다른 로컬 서비스가 사용 중
+  port: ${PORT:8081}        # Render 등 PaaS는 PORT를 주입. 로컬 기본 8081 (8080은 사용 중)
 
 app:
   jwt:
