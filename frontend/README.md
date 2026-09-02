@@ -65,3 +65,31 @@ npm run dev     # → http://localhost:3000
 `MAX_GAIN` 검증(§7.3)이 **콘텐츠 단위로 "마지막 보고 시각"을 하나만** 두고 있어,
 같은 영상을 두 기기/탭에서 동시에 시청하면 정상 요청이 거부됩니다.
 실제 구현에서는 세션(기기) 단위로 마지막 보고 시각을 관리하거나 토큰 버킷 방식으로 바꿔야 합니다.
+
+
+## Vercel 배포
+
+```
+New Project → GitHub gsitmMin/GSlearning 연결
+  Root Directory     frontend        ← 하위 폴더 지정
+  Framework Preset   Next.js         (자동 감지)
+```
+
+환경변수 (Settings → Environment Variables):
+
+```
+BACKEND_ORIGIN = https://gslearning.onrender.com     [Production] [Preview]
+```
+
+`NEXT_PUBLIC_` 접두사를 붙이지 않는다 — 서버 측 rewrites에서만 쓰이므로
+브라우저에 백엔드 주소가 노출되지 않고, CORS도 발생하지 않는다.
+
+### 백엔드 CORS
+
+프록시 구조라 브라우저 입장에서는 동일 출처(`/api/*`)이므로 Render 쪽
+`APP_CORS_ALLOWED_ORIGINS` 설정은 필요 없다.
+
+### 주의 — Render 무료 플랜 콜드스타트
+
+백엔드가 유휴 상태면 첫 요청에 30~60초가 걸린다. 이때 로그인 화면에서
+타임아웃처럼 보일 수 있으므로, 데모 전에 백엔드 URL을 한 번 열어 깨워둘 것.
