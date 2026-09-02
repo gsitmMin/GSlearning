@@ -29,8 +29,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <footer className="site-footer">
           <div className="inner">
-            <span>GSITM Learning — 프로토타입 (PRD v1.0 · 목 데이터)</span>
-            <span>Vimeo 플레이어는 실제 연동 전까지 시뮬레이터로 대체됩니다</span>
+            <span>GSITM Learning</span>
+            <span>GS ITM.</span>
           </div>
         </footer>
       </body>

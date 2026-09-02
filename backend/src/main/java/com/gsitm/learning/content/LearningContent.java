@@ -67,6 +67,13 @@ public class LearningContent {
     public boolean isVisibleToLearner() {
         return "PUBLISHED".equals(publishStatus) && "AVAILABLE".equals(availabilityStatus);
     }
+    /** 관리자 메타데이터 수정 — Vimeo 원본과 독립 (FR-C-05) */
+    public void updateMeta(String title, String description, String difficulty) {
+        if (title != null && !title.isBlank()) this.title = title;
+        if (description != null) this.description = description;
+        if (difficulty != null && !difficulty.isBlank()) this.difficulty = difficulty;
+    }
+
     public void publish() { this.publishStatus = "PUBLISHED"; }
     public void markRemoved() { this.availabilityStatus = "REMOVED"; }
 }

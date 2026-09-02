@@ -77,6 +77,15 @@ public class ContentAdminService {
         return created;
     }
 
+    /** 제목·설명·난이도 수정 (FR-C-05). Vimeo 원본 메타데이터와 독립 */
+    @Transactional
+    public void updateMeta(String code, ContentDtos.UpdateRequest req, String actorEmployeeNo) {
+        LearningContent c = query.requireByCode(code);
+        c.updateMeta(req.title(), req.description(), req.difficulty());
+        audit.record(null, actorEmployeeNo, "CONTENT_UPDATED", "learning_content", code,
+            Map.of("title", c.getTitle()), null, null);
+    }
+
     @Transactional
     public void publish(String code, String actorEmployeeNo) {
         LearningContent c = query.requireByCode(code);

@@ -31,6 +31,9 @@ public final class ContentDtos {
 
     public record ImportRequest(List<String> vimeoIds) {}
 
+    /** FR-C-05 — null인 필드는 유지 */
+    public record UpdateRequest(String title, String description, String difficulty) {}
+
     public static int tone(String code) {
         return Math.floorMod(code.hashCode(), 360);
     }

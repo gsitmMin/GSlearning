@@ -56,6 +56,14 @@ class ContentAdminController {
         return ApiResponse.ok(query.listAll());
     }
 
+    @PatchMapping("/contents/{code}")
+    ApiResponse<Void> updateMeta(@PathVariable String code,
+                                 @RequestBody ContentDtos.UpdateRequest req,
+                                 @AuthenticationPrincipal AuthPrincipal principal) {
+        admin.updateMeta(code, req, principal.employeeNo());
+        return ApiResponse.ok(null);
+    }
+
     @PostMapping("/contents/{code}/publish")
     ApiResponse<Void> publish(@PathVariable String code,
                               @AuthenticationPrincipal AuthPrincipal principal) {
