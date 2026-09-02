@@ -1,0 +1,37 @@
+spring:
+  profiles:
+    default: local          # 프로필 미지정 시 local (application-local.yml 필요)
+  application:
+    name: learning-backend
+  jpa:
+    hibernate:
+      ddl-auto: validate    # 스키마 진실은 Flyway. 엔티티-DDL 불일치 시 기동 실패
+    open-in-view: false
+  flyway:
+    locations: classpath:db/migration
+    clean-disabled: true
+    # 기존 테이블(public.test)이 있는 DB — baseline 0에서 시작해 V1부터 전부 적용
+    baseline-on-migrate: true
+    baseline-version: 0
+  datasource:
+    hikari:
+      maximum-pool-size: 5   # 공유 DB(max_connections 100) 배려
+      minimum-idle: 1
+
+server:
+  servlet:
+    context-path: /api/v2   # PRD §9 Base Path
+  port: 8081                # 8080은 다른 로컬 서비스가 사용 중
+
+app:
+  jwt:
+    access-ttl: 30m
+    refresh-ttl: 14d
+  cors:
+    allowed-origins: http://localhost:3000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
